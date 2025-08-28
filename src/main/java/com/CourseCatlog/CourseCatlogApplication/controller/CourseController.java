@@ -25,7 +25,7 @@ public class CourseController {
     @PostMapping
     public ResponseEntity<CourseResponse> create(@Valid @RequestBody CreateCourseRequest req) {
         CourseResponse created = courseService.create(req);
-        return ResponseEntity.created(URI.create("/courses/" + created.getId())).body(created);
+        return ResponseEntity.created(URI.create("/courses/" + created.id())).body(created);
     }
 
     @GetMapping("/{id}")

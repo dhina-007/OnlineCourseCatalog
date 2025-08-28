@@ -99,4 +99,33 @@ public class CourseService {
             return courseRepository.findAll(pageable);
         }
     }
+
+    public Page<CourseResponse> list(String category, String title, int page, int size, String sortBy, String direction) {
+        Sort sort = Sort.by("id").ascending(); // default sort
+        if (StringUtils.hasText(sortBy)) {
+            if ("desc".equalsIgnoreCase(direction)) {
+                sort = Sort.by(sortBy).descending();
+            } else {
+                sort = Sort.by(sortBy).ascending();
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Course> result;
+        boolean hasCategory = StringUtils.hasText(category);
+        boolean hasTitle = StringUtils.hasText(title);
+
+        if (hasCategory && hasTitle) {
+            result = courseRepository.findByCategoryIgnoreCaseAndTitleContainingIgnoreCase(category.trim(), title.trim(), pageable);
+        } else if (hasCategory) {
+            result = courseRepository.findByCategoryIgnoreCase(category.trim(), pageable);
+        } else if (hasTitle) {
+            result = courseRepository.findByTitleContainingIgnoreCase(title.trim(), pageable);
+        } else {
+            result = courseRepository.findAll(pageable);
+        }
+
+        return result.map(this::map);
+    }
 }

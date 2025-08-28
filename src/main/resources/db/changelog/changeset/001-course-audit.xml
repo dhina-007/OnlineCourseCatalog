@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <!-- 1. Create course_audit table -->
+    <changeSet id="1-create-course-audit-table" author="dhina">
+        <createTable tableName="course_audit">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="course_id" type="BIGINT"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="operation" type="VARCHAR(50)"/>
+            <column name="changed_at" type="TIMESTAMP" defaultValueComputed="NOW()"/>
+        </createTable>
+    </changeSet>
+
+    <!-- 2. Create trigger function -->
+    <changeSet id="2-create-course-audit-function" author="dhina" runOnChange="true">
+        <createProcedure>
+            <![CDATA[
+            CREATE OR REPLACE FUNCTION log_course_audit()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                IF (TG_OP = 'INSERT') THEN
+                    INSERT INTO course_audit(course_id, title, operation)
+                    VALUES (NEW.id, NEW.title, 'INSERT');
+                    RETURN NEW;
+
+                ELSIF (TG_OP = 'UPDATE') THEN
+                    INSERT INTO course_audit(course_id, title, operation)
+                    VALUES (NEW.id, NEW.title, 'UPDATE');
+                    RETURN NEW;
+
+                ELSIF (TG_OP = 'DELETE') THEN
+                    INSERT INTO course_audit(course_id, title, operation)
+                    VALUES (OLD.id, OLD.title, 'DELETE');
+                    RETURN OLD;
+                END IF;
+            END;
+            $$ LANGUAGE plpgsql;
+            ]]>
+        </createProcedure>
+    </changeSet>
+
+    <!-- 3. Create trigger on courses table -->
+    <changeSet id="3-create-course-audit-trigger" author="dhina" runOnChange="true">
+        <sql>
+            CREATE TRIGGER course_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON courses
+            FOR EACH ROW
+            EXECUTE FUNCTION log_course_audit();
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

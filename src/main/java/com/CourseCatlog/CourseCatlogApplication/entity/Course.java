@@ -1,6 +1,7 @@
 package com.CourseCatlog.CourseCatlogApplication.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.Instant;
@@ -17,7 +18,9 @@ public class Course {
     @Column(nullable=false)
     private String title;
 
-    @Column(length = 2000)
+//    @Column(length = 2000)
+//    private String description;
+    @Size(max = 2000, message = "Description cannot exceed 2000 characters")
     private String description;
 
     @Column(nullable=false)
