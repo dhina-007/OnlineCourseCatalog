@@ -11,5 +11,7 @@
     <include file="db/changelog/changeset/create-material-table.xml"/>
     <include file="db/changelog/changeset/create-enrollment-table.xml"/>
 
+    <!-- Audit Table -->
+    <include file="db/changelog/changeset/001-course-audit.xml" />
 
 </databaseChangeLog>
