@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/courses/{courseId}/lessons")
 @RequiredArgsConstructor
-@Tag(name = "Lessons")
 public class LessonController {
     private final LessonService lessonService;
 
@@ -23,7 +22,7 @@ public class LessonController {
     public ResponseEntity<LessonResponse> create(@PathVariable Long courseId,
                                                  @Valid @RequestBody CreateLessonRequest req) {
         LessonResponse created = lessonService.create(courseId, req);
-        return ResponseEntity.created(URI.create("/courses/" + courseId + "/lessons/" + created.getId()))
+        return ResponseEntity.created(URI.create("/courses/" + courseId + "/lessons/" + created.id()))
                 .body(created);
     }
 

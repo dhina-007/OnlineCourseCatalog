@@ -70,15 +70,17 @@ public class LessonService {
     private LessonResponse map(Lesson l) {
         List<MaterialResponse> mats = l.getMaterials() == null ? List.of() :
                 l.getMaterials().stream()
-                        .map(m -> MaterialResponse.builder().id(m.getId()).type(m.getType()).url(m.getUrl()).build())
+                        //.map(m -> MaterialResponse.builder().id(m.getId()).type(m.getType()).url(m.getUrl()).build())
+                        .map(m -> new MaterialResponse(m.getId(), m.getType(), m.getUrl()))
                         .toList();
-        return LessonResponse.builder()
-                .id(l.getId())
-                .title(l.getTitle())
-                .content(l.getContent())
-                .duration(l.getDuration())
-                .videoUrl(l.getVideoUrl())
-                .resources(mats)
-                .build();
+
+        return new LessonResponse(
+                l.getId(),
+                l.getTitle(),
+                l.getContent(),
+                l.getDuration(),
+                l.getVideoUrl(),
+                mats
+        );
     }
 }
