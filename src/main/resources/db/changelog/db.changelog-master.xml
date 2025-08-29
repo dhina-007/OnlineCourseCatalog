@@ -13,6 +13,5 @@
 
     <!-- Audit Table -->
     <include file="db/changelog/changeset/001-course-audit.xml" />
-    <include file="db/changelog/changeset/001-lesson-audit.xml" />
 
 </databaseChangeLog>
