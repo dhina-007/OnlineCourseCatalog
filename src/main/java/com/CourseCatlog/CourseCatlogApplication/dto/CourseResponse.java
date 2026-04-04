@@ -20,6 +20,7 @@ public record CourseResponse(
         boolean free,
         Set<String> tags,
         Double averageRating,
-        String videoUrl
+        String videoUrl,
+        String imageUrl
 ) {
 }

@@ -91,6 +91,9 @@ public class CourseService {
         if (StringUtils.hasText(req.getVideoUrl())) {
             c.setVideoUrl(req.getVideoUrl());
         }
+        if (StringUtils.hasText(req.getImageUrl())) {
+            c.setImageUrl(req.getImageUrl());
+        }
         applyTags(c, req.getTagNames());
         c = courseRepository.save(c);
         return map(c, true);
@@ -182,6 +185,9 @@ public class CourseService {
         if (req.getVideoUrl() != null) {
             c.setVideoUrl(StringUtils.hasText(req.getVideoUrl()) ? req.getVideoUrl() : null);
         }
+        if (req.getImageUrl() != null) {
+            c.setImageUrl(StringUtils.hasText(req.getImageUrl()) ? req.getImageUrl() : null);
+        }
         return map(courseRepository.save(c), true);
     }
 
@@ -192,6 +198,16 @@ public class CourseService {
         assertCanModify(c, actor, actorUser);
         String url = courseVideoStorageService.uploadCourseVideo(courseId, file);
         c.setVideoUrl(url);
+        return map(courseRepository.save(c), true);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = "courseCatalog", allEntries = true)
+    public CourseResponse uploadCourseCover(Long courseId, MultipartFile file, UserPrincipal actor, User actorUser) {
+        Course c = find(courseId);
+        assertCanModify(c, actor, actorUser);
+        String url = courseVideoStorageService.uploadCourseCoverImage(courseId, file);
+        c.setImageUrl(url);
         return map(courseRepository.save(c), true);
     }
 
@@ -255,6 +271,7 @@ public class CourseService {
                 .tags(tagNames)
                 .averageRating(avg)
                 .videoUrl(c.getVideoUrl())
+                .imageUrl(c.getImageUrl())
                 .build();
     }
 }

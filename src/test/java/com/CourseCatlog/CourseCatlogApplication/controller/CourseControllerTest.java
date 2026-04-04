@@ -59,6 +59,7 @@ class CourseControllerTest {
                 .tags(Set.of())
                 .averageRating(null)
                 .videoUrl(null)
+                .imageUrl(null)
                 .build();
         Page<CourseResponse> page = new PageImpl<>(List.of(row), PageRequest.of(0, 10), 1);
         when(courseService.list(isNull(), isNull(), isNull(), eq(0), eq(10), isNull(), isNull())).thenReturn(page);

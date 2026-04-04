@@ -47,6 +47,34 @@ class CourseVideoStorageServiceTest {
     }
 
     @Test
+    void uploadCourseCoverImage_givenNonImageContentType_shouldThrowBadRequest() {
+        SupabaseStorageProperties props = configuredProperties();
+        var service = new CourseVideoStorageService(props, s3Client);
+        var file = new MockMultipartFile("file", "x.mp4", "video/mp4", new byte[] {1});
+
+        assertThatThrownBy(() -> service.uploadCourseCoverImage(2L, file))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("image");
+    }
+
+    @Test
+    void uploadCourseCoverImage_givenValidPng_shouldPutObjectAndReturnPublicUrl() {
+        SupabaseStorageProperties props = configuredProperties();
+        var service = new CourseVideoStorageService(props, s3Client);
+        var file = new MockMultipartFile("file", "hero.png", "image/png", new byte[] {1, 2, 3});
+
+        String url = service.uploadCourseCoverImage(7L, file);
+
+        assertThat(url).contains("courses/7/covers/");
+        assertThat(url).endsWith("-hero.png");
+
+        ArgumentCaptor<PutObjectRequest> reqCap = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(s3Client).putObject(reqCap.capture(), any(RequestBody.class));
+        PutObjectRequest req = reqCap.getValue();
+        assertThat(req.contentType()).isEqualTo("image/png");
+    }
+
+    @Test
     void uploadCourseVideo_givenValidVideo_shouldPutObjectAndReturnPublicUrl() {
         SupabaseStorageProperties props = configuredProperties();
         var service = new CourseVideoStorageService(props, s3Client);

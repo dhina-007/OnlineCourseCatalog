@@ -20,5 +20,6 @@
     <include file="db/changelog/changeset/phase4-learning-progress.xml"/>
     <include file="db/changelog/changeset/phase5-reviews-tags.xml"/>
     <include file="db/changelog/changeset/course-add-video-url.xml"/>
+    <include file="db/changelog/changeset/course-add-image-url.xml"/>
 
 </databaseChangeLog>

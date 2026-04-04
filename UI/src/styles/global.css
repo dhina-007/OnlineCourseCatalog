@@ -1,0 +1,571 @@
+/* Udemy-inspired: light, clean, marketplace catalog */
+:root {
+  --udemy-purple: #5624d0;
+  --udemy-purple-hover: #401b9c;
+  --udemy-teal: #3e908e;
+  --udemy-text: #1c1d1f;
+  --udemy-muted: #6a6f73;
+  --udemy-border: #d1d7dc;
+  --udemy-bg: #ffffff;
+  --udemy-page: #f7f9fa;
+  --udemy-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.08);
+  --danger: #b32d2d;
+  --ok: #1e6055;
+  --border: var(--udemy-border);
+  --bg: var(--udemy-page);
+  font-family: udemy sans, sf pro text, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--udemy-page);
+  color: var(--udemy-text);
+  line-height: 1.4;
+}
+
+a {
+  color: var(--udemy-purple);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--udemy-purple-hover);
+}
+
+/* —— Header —— */
+header.app-header {
+  background: var(--udemy-bg);
+  border-bottom: 1px solid var(--udemy-border);
+  padding: 0 1.5rem;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+header.app-header .brand {
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: var(--udemy-text);
+}
+
+header.app-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+header.app-header nav a {
+  color: var(--udemy-text);
+  font-weight: 600;
+}
+header.app-header nav a:hover {
+  color: var(--udemy-purple);
+}
+
+header.app-header button.secondary {
+  border-color: var(--udemy-text);
+  color: var(--udemy-text);
+}
+
+main.app-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+/* —— Forms & cards —— */
+.card {
+  background: var(--udemy-bg);
+  border: 1px solid var(--udemy-border);
+  border-radius: 0;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: none;
+}
+
+.card h2,
+.card h3 {
+  margin-top: 0;
+}
+
+.card--auth {
+  max-width: 400px;
+  margin: 2rem auto;
+  border-radius: 4px;
+  box-shadow: var(--udemy-card-shadow);
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--udemy-text);
+  margin-bottom: 0.35rem;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0;
+  border: 1px solid var(--udemy-text);
+  background: var(--udemy-bg);
+  color: var(--udemy-text);
+  margin-bottom: 0.85rem;
+  font-size: 0.95rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--udemy-text);
+  outline-offset: 2px;
+}
+
+textarea {
+  min-height: 100px;
+  font-family: inherit;
+}
+
+button,
+.btn {
+  display: inline-block;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0;
+  border: none;
+  background: var(--udemy-purple);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+button:hover,
+.btn:hover {
+  background: var(--udemy-purple-hover);
+}
+
+button.secondary,
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--udemy-text);
+  color: var(--udemy-text);
+}
+
+button.secondary:hover,
+.btn.secondary:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+button.danger,
+.btn.danger {
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.muted {
+  color: var(--udemy-muted);
+  font-size: 0.9rem;
+}
+
+.err {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.ok {
+  color: var(--ok);
+  font-size: 0.9rem;
+}
+
+.warn {
+  color: #9a6700;
+  font-size: 0.9rem;
+}
+
+/* —— Landing —— */
+.landing {
+  margin: 0 -1.25rem;
+}
+
+.landing-hero {
+  text-align: center;
+  padding: 3rem 1.5rem 3.5rem;
+  background: linear-gradient(165deg, #f3f1ff 0%, var(--udemy-page) 45%, #e8f6f5 100%);
+  border-bottom: 1px solid var(--udemy-border);
+}
+
+.landing-hero h1 {
+  font-size: clamp(1.85rem, 4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 1rem;
+  color: var(--udemy-text);
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-lead {
+  font-size: 1.1rem;
+  color: var(--udemy-muted);
+  max-width: 560px;
+  margin: 0 auto 1.75rem;
+  line-height: 1.55;
+}
+
+.landing-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.landing-cta-primary {
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+}
+
+.landing-cta-secondary {
+  padding: 0.85rem 1.25rem;
+  font-size: 1rem;
+}
+
+.landing-features {
+  display: grid;
+  gap: 1.5rem;
+  padding: 2.5rem 1.5rem 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (min-width: 720px) {
+  .landing-features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.landing-feature {
+  padding: 1rem 0.25rem;
+}
+
+.landing-feature h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  color: var(--udemy-text);
+}
+
+.landing-feature p {
+  margin: 0;
+  color: var(--udemy-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.preview-locked-card {
+  border-left: 4px solid var(--udemy-purple);
+}
+
+/* —— Catalog hero —— */
+.catalog-hero {
+  margin-bottom: 1.5rem;
+}
+
+.catalog-hero h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.catalog-hero p {
+  margin: 0;
+  color: var(--udemy-muted);
+  font-size: 1rem;
+}
+
+/* —— Search strip —— */
+.search-strip {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--udemy-text);
+  max-width: 640px;
+}
+
+.search-strip input {
+  flex: 1;
+  margin: 0;
+  border: none;
+  padding: 0.85rem 1rem;
+}
+
+.search-strip input:focus {
+  outline: none;
+}
+
+.search-strip button {
+  margin: 0;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+/* —— Course grid (Udemy cards) —— */
+.course-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+.udemy-course-card {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  background: var(--udemy-bg);
+  border: 1px solid transparent;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+}
+
+.udemy-course-card:hover {
+  border-color: var(--udemy-border);
+  box-shadow: var(--udemy-card-shadow);
+  text-decoration: none;
+}
+
+.udemy-course-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #2d2f31;
+}
+
+.udemy-course-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.udemy-course-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #5624d0 0%, #764ba2 50%, #3e908e 100%);
+  opacity: 0.9;
+}
+
+.udemy-course-badges {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.45rem;
+  color: #fff;
+}
+
+.badge--premium {
+  background: var(--udemy-purple);
+}
+
+.badge--bestseller {
+  background: var(--udemy-teal);
+}
+
+.udemy-course-body {
+  padding: 0.65rem 0.15rem 0.25rem;
+  flex: 1;
+}
+
+.udemy-course-body h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  line-height: 1.35;
+  color: var(--udemy-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.udemy-course-instructor {
+  font-size: 0.75rem;
+  color: var(--udemy-muted);
+  margin: 0 0 0.35rem;
+}
+
+.udemy-course-rating {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #b4690e;
+  margin: 0 0 0.35rem;
+}
+
+.udemy-course-rating .star {
+  color: #e59819;
+}
+
+.udemy-course-price {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.udemy-course-price .strike {
+  text-decoration: line-through;
+  color: var(--udemy-muted);
+  font-weight: 400;
+  font-size: 0.85rem;
+  margin-left: 0.35rem;
+}
+
+.pager {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--udemy-border);
+}
+
+/* —— Course detail hero —— */
+.course-detail-hero {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .course-detail-hero {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.course-detail-cover {
+  aspect-ratio: 16 / 9;
+  background: #2d2f31;
+  overflow: hidden;
+  border: 1px solid var(--udemy-border);
+}
+
+.course-detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.course-detail-cover-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: linear-gradient(135deg, #5624d0 0%, #3e908e 100%);
+}
+
+.course-detail-intro {
+  padding: 0.25rem 0;
+}
+
+.course-detail-intro h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.video-shell {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border: 1px solid var(--udemy-border);
+}
+
+.video-iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  display: block;
+}
+
+.video-native {
+  width: 100%;
+  max-height: 520px;
+  display: block;
+  vertical-align: middle;
+}
+
+.lesson-block {
+  border-left: 3px solid var(--udemy-purple);
+  padding-left: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  display: inline-block;
+  background: #f3f2f6;
+  color: var(--udemy-text);
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.35rem;
+  border: 1px solid var(--udemy-border);
+}
+
+table.simple {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+table.simple th,
+table.simple td {
+  border-bottom: 1px solid var(--udemy-border);
+  padding: 0.5rem 0.35rem;
+  text-align: left;
+}

@@ -65,6 +65,13 @@ public class CourseController {
         return courseService.uploadPromoVideo(id, file, p, userService.find(p.getId()));
     }
 
+    @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('INSTRUCTOR','ADMIN')")
+    public CourseResponse uploadCourseCover(@PathVariable Long id, @RequestPart("file") MultipartFile file) {
+        UserPrincipal p = SecurityUtils.requirePrincipal();
+        return courseService.uploadCourseCover(id, file, p, userService.find(p.getId()));
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public CourseResponse update(@PathVariable Long id, @RequestBody UpdateCourseRequest req) {

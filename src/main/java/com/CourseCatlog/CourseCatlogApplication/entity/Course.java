@@ -59,6 +59,9 @@ public class Course {
     @Column(name = "video_url", length = 2000)
     private String videoUrl;
 
+    @Column(name = "image_url", length = 2000)
+    private String imageUrl;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

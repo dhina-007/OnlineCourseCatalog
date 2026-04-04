@@ -22,5 +22,7 @@ public class CreateCourseRequest {
     private Boolean free;
     @Size(max = 2000)
     private String videoUrl;
+    @Size(max = 2000)
+    private String imageUrl;
     private Set<String> tagNames;
 }
