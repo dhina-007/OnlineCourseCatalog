@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, ApiError } from '@/lib/api.js'
 import { useAuth } from '@/lib/authStore.js'
 import { canEdit } from '@/lib/roles.js'
+import { PageLoader, Spinner } from '@/components/common/Loader.jsx'
 
 export function PageCatalog() {
   const auth = useAuth()
@@ -12,10 +13,29 @@ export function PageCatalog() {
   const [err, setErr] = useState('')
   const [search, setSearch] = useState('')
   const [q, setQ] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  const SEARCH_DEBOUNCE_MS = 350
+
+  /** Typing updates the input; debounced query drives the API. Clearing the field resets immediately (full catalog). */
+  useEffect(() => {
+    const trimmed = search.trim()
+    if (trimmed === '') {
+      setQ('')
+      setPage(0)
+      return
+    }
+    const t = setTimeout(() => {
+      setQ(trimmed)
+      setPage(0)
+    }, SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [search])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      setLoading(true)
       setErr('')
       try {
         const params = new URLSearchParams({ page: String(page), size: String(size) })
@@ -24,6 +44,8 @@ export function PageCatalog() {
         if (!cancelled) setData(res)
       } catch (e) {
         if (!cancelled) setErr(e instanceof ApiError ? e.message : 'Failed to load')
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     })()
     return () => {
@@ -31,18 +53,27 @@ export function PageCatalog() {
     }
   }, [page, size, q])
 
+  /** Submit runs search immediately (no need to wait for debounce). */
   function doSearch(e) {
     e.preventDefault()
+    const trimmed = search.trim()
+    setQ(trimmed)
     setPage(0)
-    setQ(search)
+  }
+
+  if (loading && !data) {
+    return <PageLoader message="Loading courses…" />
   }
 
   return (
     <>
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+      <div
+        className="row catalog-toolbar"
+        style={{ justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}
+      >
         <div className="catalog-hero">
           <h1>Courses to get you started</h1>
-          <p>Learn from real-world experts — same catalog API, professional presentation.</p>
+          <p>Learn from real-world experts — browse, search, and enroll.</p>
         </div>
         {auth?.token && canEdit(auth.role) && (
           <Link to="/courses/new" className="btn">
@@ -57,9 +88,20 @@ export function PageCatalog() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search for anything"
           aria-label="Search courses"
+          autoComplete="off"
+          disabled={loading}
         />
-        <button type="submit">Search</button>
+        <button type="submit" disabled={loading}>
+          Search
+        </button>
       </form>
+
+      {loading && data && (
+        <div className="catalog-loading-bar" role="status">
+          <Spinner size="sm" />
+          <span>Updating results…</span>
+        </div>
+      )}
 
       {err && <div className="err">{err}</div>}
 
@@ -98,13 +140,13 @@ export function PageCatalog() {
 
       {data && (
         <div className="pager">
-          <button type="button" className="secondary" disabled={data.first} onClick={() => setPage((p) => p - 1)}>
+          <button type="button" className="secondary" disabled={data.first || loading} onClick={() => setPage((p) => p - 1)}>
             Previous
           </button>
           <span className="muted">
             Page {data.number + 1} of {data.totalPages || 1}
           </span>
-          <button type="button" className="secondary" disabled={data.last} onClick={() => setPage((p) => p + 1)}>
+          <button type="button" className="secondary" disabled={data.last || loading} onClick={() => setPage((p) => p + 1)}>
             Next
           </button>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, ApiError } from '@/lib/api.js'
+import { ButtonSpinner } from '@/components/common/Loader.jsx'
 
 function parseTags(s) {
   if (!s || !s.trim()) return []
@@ -23,6 +24,8 @@ export function CourseEditorForm({ course }) {
   const [videoUrl, setVideoUrl] = useState(course.videoUrl || '')
   const [imageUrl, setImageUrl] = useState(course.imageUrl || '')
   const [tags, setTags] = useState((course.tags && [...course.tags].join(', ')) || '')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     setTitle(course.title || '')
@@ -40,6 +43,7 @@ export function CourseEditorForm({ course }) {
   async function save(e) {
     e.preventDefault()
     setErr('')
+    setSaving(true)
     try {
       await api(`/api/v1/courses/${course.id}`, {
         method: 'PUT',
@@ -59,17 +63,22 @@ export function CourseEditorForm({ course }) {
       window.location.reload()
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Update failed')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function remove() {
     if (!confirm('Delete this course?')) return
     setErr('')
+    setDeleting(true)
     try {
       await api(`/api/v1/courses/${course.id}`, { method: 'DELETE' })
       nav('/courses')
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Delete failed')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -79,33 +88,56 @@ export function CourseEditorForm({ course }) {
       {err && <div className="err">{err}</div>}
       <form onSubmit={save}>
         <label>Title</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} required disabled={saving || deleting} />
         <label>Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} disabled={saving || deleting} />
         <label>Category</label>
-        <input value={category} onChange={(e) => setCategory(e.target.value)} required />
+        <input value={category} onChange={(e) => setCategory(e.target.value)} required disabled={saving || deleting} />
         <label>Language</label>
-        <input value={language} onChange={(e) => setLanguage(e.target.value)} required />
+        <input value={language} onChange={(e) => setLanguage(e.target.value)} required disabled={saving || deleting} />
         <label>
-          <input type="checkbox" checked={free} onChange={(e) => setFree(e.target.checked)} /> Free
+          <input
+            type="checkbox"
+            checked={free}
+            disabled={saving || deleting}
+            onChange={(e) => setFree(e.target.checked)}
+          />{' '}
+          Free
         </label>
         {!free && (
           <>
             <label>Price</label>
-            <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" step="0.01" />
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              type="number"
+              step="0.01"
+              disabled={saving || deleting}
+            />
             <label>Currency</label>
-            <input value={currency} onChange={(e) => setCurrency(e.target.value)} />
+            <input value={currency} onChange={(e) => setCurrency(e.target.value)} disabled={saving || deleting} />
           </>
         )}
         <label>Cover image URL (optional — or use Upload cover below)</label>
-        <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://…" />
+        <input
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="https://…"
+          disabled={saving || deleting}
+        />
         <label>Promo video URL (optional — YouTube or direct file URL)</label>
-        <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+        <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} disabled={saving || deleting} />
         <label>Tags (comma-separated)</label>
-        <input value={tags} onChange={(e) => setTags(e.target.value)} />
-        <button type="submit">Save changes</button>
-        <button type="button" className="danger" onClick={remove}>
-          Delete course
+        <input value={tags} onChange={(e) => setTags(e.target.value)} disabled={saving || deleting} />
+        <button type="submit" disabled={saving || deleting}>
+          <ButtonSpinner busy={saving} busyLabel="Saving…">
+            Save changes
+          </ButtonSpinner>
+        </button>
+        <button type="button" className="danger" onClick={remove} disabled={saving || deleting}>
+          <ButtonSpinner busy={deleting} busyLabel="Deleting…">
+            Delete course
+          </ButtonSpinner>
         </button>
       </form>
     </div>

@@ -6,6 +6,7 @@ import { CheckoutStripe } from '@/components/checkout/CheckoutStripe.jsx'
 import { CourseEditorForm } from '@/components/course/CourseEditorForm.jsx'
 import { CourseVideoPlayer, youtubeWatchPageUrl } from '@/components/course/CourseVideoPlayer.jsx'
 import { canEdit } from '@/lib/roles.js'
+import { ButtonSpinner, InlineLoader, PageLoader } from '@/components/common/Loader.jsx'
 
 export function PageCourseDetail() {
   const { id } = useParams()
@@ -34,6 +35,18 @@ export function PageCourseDetail() {
   const [matType, setMatType] = useState('PDF')
   const [matUrl, setMatUrl] = useState('')
   const [matLessonId, setMatLessonId] = useState(null)
+
+  const [refreshing, setRefreshing] = useState(false)
+  const [materialsLoadingId, setMaterialsLoadingId] = useState(null)
+  const [checkoutBusy, setCheckoutBusy] = useState(false)
+  const [enrollBusy, setEnrollBusy] = useState(false)
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [addLessonBusy, setAddLessonBusy] = useState(false)
+  const [addMaterialBusy, setAddMaterialBusy] = useState(false)
+  const [deletingLessonId, setDeletingLessonId] = useState(null)
+  const [coverUploading, setCoverUploading] = useState(false)
+  const [videoUploading, setVideoUploading] = useState(false)
+  const [progressSavingLessonId, setProgressSavingLessonId] = useState(null)
 
   const editable = useMemo(() => auth?.token && canEdit(auth.role), [auth?.token, auth?.role])
 
@@ -111,21 +124,27 @@ export function PageCourseDetail() {
 
   async function refreshAll() {
     setErr('')
+    setRefreshing(true)
     try {
       await loadPublic()
       await loadAuthData()
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : 'Refresh failed')
+    } finally {
+      setRefreshing(false)
     }
   }
 
   async function loadMaterialsForLesson(lessonId) {
     if (!auth?.token) return
+    setMaterialsLoadingId(lessonId)
     try {
       const m = await api(`/api/v1/courses/${courseId}/lessons/${lessonId}/materials`)
       setMaterials((prev) => ({ ...prev, [lessonId]: m || [] }))
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : 'Materials failed')
+    } finally {
+      setMaterialsLoadingId(null)
     }
   }
 
@@ -143,12 +162,15 @@ export function PageCourseDetail() {
   async function enroll() {
     setMsg('')
     setErr('')
+    setEnrollBusy(true)
     try {
       await api(`/api/v1/courses/${courseId}/enroll`, { method: 'POST' })
       setMsg('Enrolled.')
       await loadAuthData()
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : 'Enroll failed')
+    } finally {
+      setEnrollBusy(false)
     }
   }
 
@@ -156,6 +178,7 @@ export function PageCourseDetail() {
     setMsg('')
     setErr('')
     setCheckout(null)
+    setCheckoutBusy(true)
     try {
       const co = await api('/api/v1/orders/checkout', {
         method: 'POST',
@@ -163,6 +186,7 @@ export function PageCourseDetail() {
       })
       if (co.status === 'MOCK_PAID' || co.status === 'ALREADY_PAID') {
         setMsg(co.status === 'MOCK_PAID' ? 'Mock payment complete. You can enroll now.' : 'Already purchased.')
+        setCheckoutBusy(false)
         await enroll()
         return
       }
@@ -173,12 +197,15 @@ export function PageCourseDetail() {
       setMsg(co.status || 'Checkout done')
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : 'Checkout failed')
+    } finally {
+      setCheckoutBusy(false)
     }
   }
 
   async function submitReview(e) {
     e.preventDefault()
     setErr('')
+    setReviewSubmitting(true)
     try {
       await api(`/api/v1/courses/${courseId}/reviews`, {
         method: 'POST',
@@ -189,12 +216,15 @@ export function PageCourseDetail() {
       setMsg('Review posted.')
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Review failed')
+    } finally {
+      setReviewSubmitting(false)
     }
   }
 
   async function addLesson(e) {
     e.preventDefault()
     setErr('')
+    setAddLessonBusy(true)
     try {
       await api(`/api/v1/courses/${courseId}/lessons`, {
         method: 'POST',
@@ -210,17 +240,22 @@ export function PageCourseDetail() {
       await loadPublic()
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Lesson create failed')
+    } finally {
+      setAddLessonBusy(false)
     }
   }
 
   async function deleteLesson(lid) {
     if (!confirm('Delete lesson?')) return
     setErr('')
+    setDeletingLessonId(lid)
     try {
       await api(`/api/v1/courses/${courseId}/lessons/${lid}`, { method: 'DELETE' })
       await loadPublic()
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Delete failed')
+    } finally {
+      setDeletingLessonId(null)
     }
   }
 
@@ -231,6 +266,7 @@ export function PageCourseDetail() {
       return
     }
     setErr('')
+    setAddMaterialBusy(true)
     try {
       await api(`/api/v1/courses/${courseId}/lessons/${matLessonId}/materials`, {
         method: 'POST',
@@ -240,11 +276,14 @@ export function PageCourseDetail() {
       await loadMaterialsForLesson(matLessonId)
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Material add failed')
+    } finally {
+      setAddMaterialBusy(false)
     }
   }
 
   async function saveProgress(lessonId, body) {
     setErr('')
+    setProgressSavingLessonId(lessonId)
     try {
       await api(`/api/v1/courses/${courseId}/lessons/${lessonId}/progress`, {
         method: 'PUT',
@@ -255,6 +294,8 @@ export function PageCourseDetail() {
       setMsg('Progress saved.')
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Progress save failed')
+    } finally {
+      setProgressSavingLessonId(null)
     }
   }
 
@@ -263,6 +304,7 @@ export function PageCourseDetail() {
     const file = e.target.elements.file?.files?.[0]
     if (!file) return
     setErr('')
+    setVideoUploading(true)
     const fd = new FormData()
     fd.append('file', file)
     try {
@@ -271,6 +313,8 @@ export function PageCourseDetail() {
       setMsg('Video uploaded.')
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Upload failed')
+    } finally {
+      setVideoUploading(false)
     }
   }
 
@@ -279,6 +323,7 @@ export function PageCourseDetail() {
     const file = e.target.elements.coverfile?.files?.[0]
     if (!file) return
     setErr('')
+    setCoverUploading(true)
     const fd = new FormData()
     fd.append('file', file)
     try {
@@ -287,6 +332,8 @@ export function PageCourseDetail() {
       setMsg('Cover image uploaded.')
     } catch (ex) {
       setErr(ex instanceof ApiError ? ex.message : 'Cover upload failed')
+    } finally {
+      setCoverUploading(false)
     }
   }
 
@@ -312,7 +359,7 @@ export function PageCourseDetail() {
   }
 
   if (!course) {
-    return <p className="muted">Loading…</p>
+    return <PageLoader message="Loading course…" />
   }
 
   return (
@@ -394,8 +441,10 @@ export function PageCourseDetail() {
           {!course.free && !enrolled && (
             <>
               <p className="muted">Purchase required before enrolling.</p>
-              <button type="button" onClick={doCheckout}>
-                Checkout
+              <button type="button" onClick={doCheckout} disabled={checkoutBusy}>
+                <ButtonSpinner busy={checkoutBusy} busyLabel="Starting checkout…">
+                  Checkout
+                </ButtonSpinner>
               </button>
               {checkout?.clientSecret && (
                 <div style={{ marginTop: '1rem' }}>
@@ -412,8 +461,10 @@ export function PageCourseDetail() {
             </>
           )}
           {course.free && !enrolled && (
-            <button type="button" onClick={enroll}>
-              Enroll (free)
+            <button type="button" onClick={enroll} disabled={enrollBusy}>
+              <ButtonSpinner busy={enrollBusy} busyLabel="Enrolling…">
+                Enroll (free)
+              </ButtonSpinner>
             </button>
           )}
           {enrolled && <p className="ok">You are enrolled.</p>}
@@ -431,14 +482,24 @@ export function PageCourseDetail() {
                 min={1}
                 max={5}
                 value={reviewRating}
+                disabled={reviewSubmitting}
                 onChange={(e) => setReviewRating(e.target.value)}
               />
             </div>
             <div style={{ flex: 3 }}>
               <label>Comment</label>
-              <textarea value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} rows={2} />
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                rows={2}
+                disabled={reviewSubmitting}
+              />
             </div>
-            <button type="submit">Post review</button>
+            <button type="submit" disabled={reviewSubmitting}>
+              <ButtonSpinner busy={reviewSubmitting} busyLabel="Posting…">
+                Post review
+              </ButtonSpinner>
+            </button>
           </form>
         </div>
       )}
@@ -450,15 +511,23 @@ export function PageCourseDetail() {
             <h3>Course cover image</h3>
             <p className="muted">Same Supabase S3 bucket as video. Public URL is stored on the course.</p>
             <form onSubmit={uploadCover}>
-              <input type="file" name="coverfile" accept="image/*" />
-              <button type="submit">Upload cover</button>
+              <input type="file" name="coverfile" accept="image/*" disabled={coverUploading} />
+              <button type="submit" disabled={coverUploading}>
+                <ButtonSpinner busy={coverUploading} busyLabel="Uploading…">
+                  Upload cover
+                </ButtonSpinner>
+              </button>
             </form>
           </div>
           <div className="card">
             <h3>Promo video upload</h3>
             <form onSubmit={uploadVideo}>
-              <input type="file" name="file" accept="video/*" />
-              <button type="submit">Upload video</button>
+              <input type="file" name="file" accept="video/*" disabled={videoUploading} />
+              <button type="submit" disabled={videoUploading}>
+                <ButtonSpinner busy={videoUploading} busyLabel="Uploading…">
+                  Upload video
+                </ButtonSpinner>
+              </button>
             </form>
           </div>
           {students.length > 0 && (
@@ -486,17 +555,30 @@ export function PageCourseDetail() {
             <h3>Add lesson</h3>
             <form onSubmit={addLesson}>
               <label>Title</label>
-              <input value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)} required />
+              <input
+                value={lessonTitle}
+                onChange={(e) => setLessonTitle(e.target.value)}
+                required
+                disabled={addLessonBusy}
+              />
               <label>Content</label>
-              <textarea value={lessonContent} onChange={(e) => setLessonContent(e.target.value)} />
-              <button type="submit">Add lesson</button>
+              <textarea value={lessonContent} onChange={(e) => setLessonContent(e.target.value)} disabled={addLessonBusy} />
+              <button type="submit" disabled={addLessonBusy}>
+                <ButtonSpinner busy={addLessonBusy} busyLabel="Adding…">
+                  Add lesson
+                </ButtonSpinner>
+              </button>
             </form>
           </div>
           <div className="card">
             <h3>Add material to lesson</h3>
             <form onSubmit={addMaterial}>
               <label>Lesson</label>
-              <select value={matLessonId || ''} onChange={(e) => setMatLessonId(Number(e.target.value))}>
+              <select
+                value={matLessonId || ''}
+                onChange={(e) => setMatLessonId(Number(e.target.value))}
+                disabled={addMaterialBusy}
+              >
                 <option value="">Select…</option>
                 {lessons.map((l) => (
                   <option key={l.id} value={l.id}>
@@ -505,13 +587,17 @@ export function PageCourseDetail() {
                 ))}
               </select>
               <label>Type</label>
-              <select value={matType} onChange={(e) => setMatType(e.target.value)}>
+              <select value={matType} onChange={(e) => setMatType(e.target.value)} disabled={addMaterialBusy}>
                 <option value="PDF">PDF</option>
                 <option value="VIDEO">VIDEO</option>
               </select>
               <label>URL</label>
-              <input value={matUrl} onChange={(e) => setMatUrl(e.target.value)} required />
-              <button type="submit">Add material</button>
+              <input value={matUrl} onChange={(e) => setMatUrl(e.target.value)} required disabled={addMaterialBusy} />
+              <button type="submit" disabled={addMaterialBusy}>
+                <ButtonSpinner busy={addMaterialBusy} busyLabel="Adding…">
+                  Add material
+                </ButtonSpinner>
+              </button>
             </form>
           </div>
         </>
@@ -528,8 +614,15 @@ export function PageCourseDetail() {
                   {expandedLesson === lesson.id ? 'Hide' : 'Materials'}
                 </button>
                 {editable && (
-                  <button type="button" className="danger" onClick={() => deleteLesson(lesson.id)}>
-                    Delete
+                  <button
+                    type="button"
+                    className="danger"
+                    disabled={deletingLessonId != null}
+                    onClick={() => deleteLesson(lesson.id)}
+                  >
+                    <ButtonSpinner busy={deletingLessonId === lesson.id} busyLabel="…">
+                      Delete
+                    </ButtonSpinner>
                   </button>
                 )}
               </div>
@@ -548,7 +641,10 @@ export function PageCourseDetail() {
             {expandedLesson === lesson.id && (
               <div style={{ marginTop: '0.5rem' }}>
                 {!auth?.token && <p className="muted">Log in to view materials.</p>}
-                {auth?.token && (
+                {auth?.token && materialsLoadingId === lesson.id && (
+                  <InlineLoader message="Loading materials…" />
+                )}
+                {auth?.token && materialsLoadingId !== lesson.id && (
                   <>
                     <p className="muted">Materials</p>
                     <ul>
@@ -561,7 +657,7 @@ export function PageCourseDetail() {
                       ))}
                     </ul>
                     {(!materials[lesson.id] || materials[lesson.id].length === 0) && (
-                      <p className="muted">No materials (or still loading).</p>
+                      <p className="muted">No materials.</p>
                     )}
                   </>
                 )}
@@ -571,6 +667,7 @@ export function PageCourseDetail() {
               <ProgressMini
                 lessonId={lesson.id}
                 initial={progressFor(lesson.id)}
+                saving={progressSavingLessonId === lesson.id}
                 onSave={(body) => saveProgress(lesson.id, body)}
               />
             )}
@@ -593,14 +690,16 @@ export function PageCourseDetail() {
         {reviews.length === 0 && <p className="muted">No reviews yet.</p>}
       </div>
 
-      <button type="button" className="secondary" onClick={refreshAll}>
-        Refresh
+      <button type="button" className="secondary" onClick={refreshAll} disabled={refreshing}>
+        <ButtonSpinner busy={refreshing} busyLabel="Refreshing…">
+          Refresh
+        </ButtonSpinner>
       </button>
     </>
   )
 }
 
-function ProgressMini({ lessonId, initial, onSave }) {
+function ProgressMini({ lessonId, initial, saving, onSave }) {
   const [completed, setCompleted] = useState(initial?.completed ?? false)
   const [pct, setPct] = useState(initial?.progressPercent ?? 0)
   const [pos, setPos] = useState(initial?.lastPositionSec ?? 0)
@@ -615,7 +714,13 @@ function ProgressMini({ lessonId, initial, onSave }) {
     <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'var(--bg)', borderRadius: 6 }}>
       <span className="muted">Progress</span>
       <label>
-        <input type="checkbox" checked={completed} onChange={(e) => setCompleted(e.target.checked)} /> Completed
+        <input
+          type="checkbox"
+          checked={completed}
+          disabled={saving}
+          onChange={(e) => setCompleted(e.target.checked)}
+        />{' '}
+        Completed
       </label>
       <label>% </label>
       <input
@@ -623,6 +728,7 @@ function ProgressMini({ lessonId, initial, onSave }) {
         min={0}
         max={100}
         value={pct}
+        disabled={saving}
         onChange={(e) => setPct(Number(e.target.value))}
         style={{ width: 80, display: 'inline-block' }}
       />
@@ -631,12 +737,14 @@ function ProgressMini({ lessonId, initial, onSave }) {
         type="number"
         min={0}
         value={pos}
+        disabled={saving}
         onChange={(e) => setPos(Number(e.target.value))}
         style={{ width: 80, display: 'inline-block' }}
       />
       <button
         type="button"
         className="secondary"
+        disabled={saving}
         onClick={() =>
           onSave({
             completed,
@@ -645,7 +753,9 @@ function ProgressMini({ lessonId, initial, onSave }) {
           })
         }
       >
-        Save progress
+        <ButtonSpinner busy={saving} busyLabel="Saving…">
+          Save progress
+        </ButtonSpinner>
       </button>
     </div>
   )
