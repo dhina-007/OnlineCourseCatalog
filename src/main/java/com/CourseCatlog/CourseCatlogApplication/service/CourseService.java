@@ -1,5 +1,6 @@
 package com.CourseCatlog.CourseCatlogApplication.service;
 
+import com.CourseCatlog.CourseCatlogApplication.constant.CourseApiConstants;
 import com.CourseCatlog.CourseCatlogApplication.dto.CourseResponse;
 import com.CourseCatlog.CourseCatlogApplication.dto.CreateCourseRequest;
 import com.CourseCatlog.CourseCatlogApplication.dto.UpdateCourseRequest;
@@ -27,7 +28,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,6 +46,31 @@ public class CourseService {
     @Transactional
     @CacheEvict(cacheNames = "courseCatalog", allEntries = true)
     public CourseResponse create(CreateCourseRequest req, User instructor) {
+        return persistNewCourse(req, instructor);
+    }
+
+    /**
+     * Creates up to {@link CourseApiConstants#MAX_BATCH_COURSES} courses in one transaction.
+     */
+    @Transactional
+    @CacheEvict(cacheNames = "courseCatalog", allEntries = true)
+    public List<CourseResponse> createBatch(List<CreateCourseRequest> requests, User instructor) {
+        if (requests == null || requests.isEmpty()) {
+            throw new com.CourseCatlog.CourseCatlogApplication.exception.BadRequestException(
+                    "Batch must contain at least one course");
+        }
+        if (requests.size() > CourseApiConstants.MAX_BATCH_COURSES) {
+            throw new com.CourseCatlog.CourseCatlogApplication.exception.BadRequestException(
+                    "Batch cannot exceed " + CourseApiConstants.MAX_BATCH_COURSES + " courses");
+        }
+        List<CourseResponse> created = new ArrayList<>(requests.size());
+        for (CreateCourseRequest req : requests) {
+            created.add(persistNewCourse(req, instructor));
+        }
+        return created;
+    }
+
+    private CourseResponse persistNewCourse(CreateCourseRequest req, User instructor) {
         if (courseRepository.existsByTitleIgnoreCase(req.getTitle())) {
             throw new ConflictException("Course title already exists");
         }

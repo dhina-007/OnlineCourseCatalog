@@ -3,6 +3,7 @@ package com.CourseCatlog.CourseCatlogApplication.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
-                                .description("JWT from POST /api/v1/auth/login or /register")));
+                                .description("Call POST /api/v1/auth/login, copy token from response, paste here (no 'Bearer ' prefix).")))
+                .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"));
     }
 }
