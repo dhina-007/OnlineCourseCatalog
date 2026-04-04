@@ -17,7 +17,8 @@ public class ReportService {
     private final CourseService courseService;
 
     public byte[] generateAllCoursesPdf() {
-        List<CourseResponse> all = courseService.list(null, null, 0, Integer.MAX_VALUE).getContent();
+        List<CourseResponse> all = courseService.list(null, null, null, 0, Integer.MAX_VALUE, null, null)
+                .getContent();
         try {
             Document doc = new Document(PageSize.A4.rotate());
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -42,7 +43,7 @@ public class ReportService {
                 table.addCell(c.id().toString());
                 table.addCell(c.title());
                 table.addCell(c.category());
-                table.addCell(c.instructor());
+                table.addCell(c.instructorName());
                 table.addCell(c.language());
                 table.addCell(c.createdAt().toString());
 

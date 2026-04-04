@@ -1,0 +1,15 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  jpa:
+    show-sql: true
+  cache:
+    type: simple
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# DB: app.datasource (pooler :6543). Set DB_PASSWORD (Supabase database password).
+# Video uploads: SUPABASE_STORAGE_ENABLED=true and S3 env vars (see application.yml app.supabase-storage).

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-tags-table" author="app">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="tags"/>
+            </not>
+        </preConditions>
+        <createTable tableName="tags">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-course-tags-table" author="app">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="course_tags"/>
+            </not>
+        </preConditions>
+        <createTable tableName="course_tags">
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="course_tags" columnNames="course_id,tag_id" constraintName="pk_course_tags"/>
+        <addForeignKeyConstraint baseTableName="course_tags" baseColumnNames="course_id"
+                                 constraintName="fk_course_tags_course"
+                                 referencedTableName="courses" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="course_tags" baseColumnNames="tag_id"
+                                 constraintName="fk_course_tags_tag"
+                                 referencedTableName="tags" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="create-reviews-table" author="app">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="reviews"/>
+            </not>
+        </preConditions>
+        <createTable tableName="reviews">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="VARCHAR(2000)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="reviews" columnNames="user_id,course_id"
+                             constraintName="uk_reviews_user_course"/>
+        <addForeignKeyConstraint baseTableName="reviews" baseColumnNames="user_id"
+                                 constraintName="fk_reviews_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="reviews" baseColumnNames="course_id"
+                                 constraintName="fk_reviews_course"
+                                 referencedTableName="courses" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

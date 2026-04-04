@@ -1,0 +1,31 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  liquibase:
+    enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+app:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jwt:
+    secret: test-secret-key-32-bytes-minimum!!test-secret-key-32-bytes-minimum!!
+    expiration-ms: 3600000
+  commerce:
+    mock-payments: true
+  stripe:
+    api-key: ""
+    webhook-secret: ""
+  content:
+    signing-secret: test-content-signing-key-32bytes-min!!
+    signed-url-ttl-seconds: 3600
+  supabase-storage:
+    enabled: false

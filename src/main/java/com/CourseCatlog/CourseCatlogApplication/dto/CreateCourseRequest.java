@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.util.Set;
+
 @Data
 public class CreateCourseRequest {
     @NotBlank(message = "Title is required")
@@ -13,8 +16,11 @@ public class CreateCourseRequest {
     @NotBlank
     private String category;
     @NotBlank
-    private String instructor;
-    @NotBlank
     private String language;
-
+    private BigDecimal price;
+    private String currency;
+    private Boolean free;
+    @Size(max = 2000)
+    private String videoUrl;
+    private Set<String> tagNames;
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-lesson-progress-table" author="app">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="lesson_progress"/>
+            </not>
+        </preConditions>
+        <createTable tableName="lesson_progress">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lesson_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="progress_percent" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_position_sec" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="lesson_progress" columnNames="user_id,lesson_id"
+                             constraintName="uk_lesson_progress_user_lesson"/>
+        <addForeignKeyConstraint baseTableName="lesson_progress" baseColumnNames="user_id"
+                                 constraintName="fk_lesson_progress_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="lesson_progress" baseColumnNames="lesson_id"
+                                 constraintName="fk_lesson_progress_lesson"
+                                 referencedTableName="lessons" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

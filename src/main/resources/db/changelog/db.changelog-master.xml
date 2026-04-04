@@ -12,6 +12,13 @@
     <include file="db/changelog/changeset/create-enrollment-table.xml"/>
 
     <!-- Audit Table -->
-    <include file="db/changelog/changeset/001-course-audit.xml" />
+    <include file="db/changelog/changeset/001-course-audit.xml"/>
+
+    <include file="db/changelog/changeset/phase1-users-auth.xml"/>
+    <include file="db/changelog/changeset/phase2-course-instructor-commerce.xml"/>
+    <include file="db/changelog/changeset/phase3-orders.xml"/>
+    <include file="db/changelog/changeset/phase4-learning-progress.xml"/>
+    <include file="db/changelog/changeset/phase5-reviews-tags.xml"/>
+    <include file="db/changelog/changeset/course-add-video-url.xml"/>
 
 </databaseChangeLog>

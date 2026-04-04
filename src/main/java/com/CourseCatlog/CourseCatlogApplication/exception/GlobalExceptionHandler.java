@@ -1,6 +1,9 @@
 package com.CourseCatlog.CourseCatlogApplication.exception;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,7 +13,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler({ForbiddenException.class, AccessDeniedException.class})
+    public ResponseEntity<?> handleForbidden(RuntimeException ex) {
+        return error(HttpStatus.FORBIDDEN, ex.getMessage() != null ? ex.getMessage() : "Forbidden");
+    }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> handleNotFound(NotFoundException ex) {
@@ -38,6 +47,12 @@ public class GlobalExceptionHandler {
         }
         body.put("fields", fields);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(TechnicalException.class)
+    public ResponseEntity<?> handleTechnical(TechnicalException ex) {
+        log.error("Technical error: {}", ex.getMessage(), ex);
+        return error(HttpStatus.SERVICE_UNAVAILABLE, "A temporary error occurred");
     }
 
     @ExceptionHandler(Exception.class)

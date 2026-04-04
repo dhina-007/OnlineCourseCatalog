@@ -3,29 +3,35 @@ package com.CourseCatlog.CourseCatlogApplication.controller;
 import com.CourseCatlog.CourseCatlogApplication.dto.CourseResponse;
 import com.CourseCatlog.CourseCatlogApplication.dto.CreateCourseRequest;
 import com.CourseCatlog.CourseCatlogApplication.dto.UpdateCourseRequest;
-import com.CourseCatlog.CourseCatlogApplication.entity.Course;
+import com.CourseCatlog.CourseCatlogApplication.security.SecurityUtils;
+import com.CourseCatlog.CourseCatlogApplication.security.UserPrincipal;
 import com.CourseCatlog.CourseCatlogApplication.service.CourseService;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.CourseCatlog.CourseCatlogApplication.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/courses")
+@RequestMapping("/api/v1/courses")
 @RequiredArgsConstructor
 public class CourseController {
+
     private final CourseService courseService;
+    private final UserService userService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR','ADMIN')")
     public ResponseEntity<CourseResponse> create(@Valid @RequestBody CreateCourseRequest req) {
-        CourseResponse created = courseService.create(req);
-        return ResponseEntity.created(URI.create("/courses/" + created.id())).body(created);
+        UserPrincipal p = SecurityUtils.requirePrincipal();
+        var created = courseService.create(req, userService.find(p.getId()));
+        return ResponseEntity.created(URI.create("/api/v1/courses/" + created.id())).body(created);
     }
 
     @GetMapping("/{id}")
@@ -33,27 +39,39 @@ public class CourseController {
         return courseService.get(id);
     }
 
+    @PostMapping(value = "/{id}/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('INSTRUCTOR','ADMIN')")
+    public CourseResponse uploadPromoVideo(@PathVariable Long id, @RequestPart("file") MultipartFile file) {
+        UserPrincipal p = SecurityUtils.requirePrincipal();
+        return courseService.uploadPromoVideo(id, file, p, userService.find(p.getId()));
+    }
+
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public CourseResponse update(@PathVariable Long id, @RequestBody UpdateCourseRequest req) {
-        return courseService.update(id, req);
+        UserPrincipal p = SecurityUtils.requirePrincipal();
+        return courseService.update(id, req, p, userService.find(p.getId()));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        courseService.delete(id);
+        UserPrincipal p = SecurityUtils.requirePrincipal();
+        courseService.delete(id, p, userService.find(p.getId()));
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<Page<Course>> getCourses(
+    public ResponseEntity<Page<CourseResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String title
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Course> courses = courseService.getCourses(pageable, category, title);
+        Page<CourseResponse> courses = courseService.list(category, title, search, page, size, sortBy, direction);
         return ResponseEntity.ok(courses);
     }
-
 }

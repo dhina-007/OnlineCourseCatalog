@@ -9,24 +9,32 @@ import com.CourseCatlog.CourseCatlogApplication.entity.MaterialType;
 import com.CourseCatlog.CourseCatlogApplication.exception.BadRequestException;
 import com.CourseCatlog.CourseCatlogApplication.exception.NotFoundException;
 import com.CourseCatlog.CourseCatlogApplication.repository.MaterialRepository;
+import com.CourseCatlog.CourseCatlogApplication.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MaterialService {
+
     private final MaterialRepository materialRepository;
     private final LessonService lessonService;
+    private final CourseService courseService;
+    private final CourseAuthorizationService courseAuthorizationService;
 
-    public MaterialResponse add(Long courseId, Long lessonId, CreateMaterialRequest req) {
+    @Transactional
+    public MaterialResponse add(Long courseId, Long lessonId, CreateMaterialRequest req, UserPrincipal editor) {
         if (req.getType() != MaterialType.PDF && req.getType() != MaterialType.VIDEO) {
             throw new BadRequestException("Invalid material type (allowed: PDF, VIDEO)");
         }
         Lesson lesson = lessonService.find(lessonId);
-        if (!lesson.getCourse().getId().equals(courseId))
+        if (!lesson.getCourse().getId().equals(courseId)) {
             throw new NotFoundException("Lesson with id " + lessonId + " not found");
+        }
+        courseAuthorizationService.assertCanEditCourse(lesson.getCourse(), editor);
         Material m = Material.builder()
                 .type(req.getType())
                 .url(req.getUrl())
@@ -35,30 +43,42 @@ public class MaterialService {
         return map(materialRepository.save(m));
     }
 
+    @Transactional(readOnly = true)
     public List<MaterialResponse> list(Long courseId, Long lessonId) {
         Lesson lesson = lessonService.find(lessonId);
-        if (!lesson.getCourse().getId().equals(courseId))
+        if (!lesson.getCourse().getId().equals(courseId)) {
             throw new NotFoundException("Lesson with id " + lessonId + " not found");
+        }
         return materialRepository.findByLessonId(lessonId).stream().map(this::map).toList();
     }
 
-    public void delete(Long courseId, Long lessonId, Long materialId) {
+    @Transactional
+    public void delete(Long courseId, Long lessonId, Long materialId, UserPrincipal editor) {
         Material m = find(materialId);
-        if (!m.getLesson().getId().equals(lessonId) || !m.getLesson().getCourse().getId().equals(courseId))
+        if (!m.getLesson().getId().equals(lessonId) || !m.getLesson().getCourse().getId().equals(courseId)) {
             throw new NotFoundException("Material with id " + materialId + " not found");
+        }
+        courseAuthorizationService.assertCanEditCourse(m.getLesson().getCourse(), editor);
         materialRepository.delete(m);
     }
 
-    public MaterialResponse update(Long courseId, Long lessonId, Long materialId, UpdateMaterialRequest req) {
+    @Transactional
+    public MaterialResponse update(Long courseId, Long lessonId, Long materialId, UpdateMaterialRequest req,
+                                   UserPrincipal editor) {
         Material m = find(materialId);
-        if (!m.getLesson().getId().equals(lessonId) || !m.getLesson().getCourse().getId().equals(courseId))
+        if (!m.getLesson().getId().equals(lessonId) || !m.getLesson().getCourse().getId().equals(courseId)) {
             throw new NotFoundException("Material with id " + materialId + " not found");
+        }
+        courseAuthorizationService.assertCanEditCourse(m.getLesson().getCourse(), editor);
         if (req.getType() != null) {
-            if (req.getType() != MaterialType.PDF && req.getType() != MaterialType.VIDEO)
+            if (req.getType() != MaterialType.PDF && req.getType() != MaterialType.VIDEO) {
                 throw new BadRequestException("Invalid material type (allowed: PDF, VIDEO)");
+            }
             m.setType(req.getType());
         }
-        if (req.getUrl() != null) m.setUrl(req.getUrl());
+        if (req.getUrl() != null) {
+            m.setUrl(req.getUrl());
+        }
         return map(materialRepository.save(m));
     }
 

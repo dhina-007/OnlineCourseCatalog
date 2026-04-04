@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="courses-add-instructor-and-pricing" author="app">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="courses" columnName="instructor_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="courses">
+            <column name="instructor_id" type="BIGINT"/>
+        </addColumn>
+        <addColumn tableName="courses">
+            <column name="price" type="DECIMAL(12,2)" defaultValueNumeric="0.00">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="courses">
+            <column name="currency" type="VARCHAR(10)" defaultValue="USD">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="courses">
+            <column name="is_free" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            UPDATE courses c SET instructor_id = (SELECT u.id FROM users u ORDER BY u.id LIMIT 1)
+            WHERE c.instructor_id IS NULL AND EXISTS (SELECT 1 FROM users u);
+        </sql>
+        <addForeignKeyConstraint baseTableName="courses" baseColumnNames="instructor_id"
+                                 constraintName="fk_courses_instructor"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="courses-drop-legacy-instructor-column" author="app">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="courses" columnName="instructor"/>
+        </preConditions>
+        <dropColumn tableName="courses" columnName="instructor"/>
+    </changeSet>
+
+</databaseChangeLog>
